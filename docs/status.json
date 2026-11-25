@@ -1,33 +1,33 @@
 {
-  "updated": "2026-11-25T00:31:50Z",
+  "updated": "2026-11-25T01:28:07Z",
   "checks": [
     {
       "id": "painel",
       "name": "Painel",
       "ok": true,
       "code": "200",
-      "ms": 360
+      "ms": 565
     },
     {
       "id": "api",
       "name": "API",
       "ok": true,
       "code": "200",
-      "ms": 343
+      "ms": 382
     },
     {
       "id": "docs",
       "name": "Documentação",
       "ok": true,
       "code": "200",
-      "ms": 605
+      "ms": 697
     },
     {
       "id": "proxy",
       "name": "Proxy dos domínios",
       "ok": true,
       "code": "404",
-      "ms": 4
+      "ms": 156
     }
   ]
 }
