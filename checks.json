@@ -1,0 +1,6 @@
+[
+  { "id": "painel", "name": "Painel", "url": "https://app.tenanci.com/api/health", "expect": 200 },
+  { "id": "api", "name": "API", "url": "https://api.tenanci.com/", "expect": 200, "contains": "Tenanci API" },
+  { "id": "docs", "name": "Documentação", "url": "https://docs.tenanci.com/pt/", "expect": 200 },
+  { "id": "proxy", "name": "Proxy dos domínios", "url": "http://109.224.228.49/", "expect": 404 }
+]
