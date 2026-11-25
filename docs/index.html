@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Status · Tenanci</title>
-<meta name="description" content="Situação dos serviços da Tenanci: painel, API, documentação e proxy dos domínios.">
+<meta name="description" content="Situação e disponibilidade dos serviços da Tenanci: painel, API, documentação e proxy dos domínios.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <style>
   :root {
     color-scheme: light;
@@ -12,10 +13,13 @@
     --fg: oklch(0.21 0.02 286);
     --card: oklch(1 0 0);
     --muted: oklch(0.5 0.02 286);
+    --soft: oklch(0.94 0.006 286);
     --border: oklch(0.91 0.008 286);
     --primary: oklch(0.56 0.22 285);
-    --ok: oklch(0.6 0.15 155);
+    --ok: oklch(0.62 0.15 155);
+    --warn: oklch(0.75 0.15 75);
     --bad: oklch(0.58 0.2 25);
+    --none: oklch(0.9 0.006 286);
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -24,10 +28,13 @@
       --fg: oklch(0.96 0.005 286);
       --card: oklch(0.2 0.014 286);
       --muted: oklch(0.7 0.015 286);
+      --soft: oklch(0.25 0.014 286);
       --border: oklch(0.3 0.014 286);
       --primary: oklch(0.64 0.2 285);
       --ok: oklch(0.68 0.15 155);
+      --warn: oklch(0.78 0.14 75);
       --bad: oklch(0.68 0.18 25);
+      --none: oklch(0.3 0.014 286);
     }
   }
   * { box-sizing: border-box; }
@@ -38,47 +45,142 @@
     font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     line-height: 1.5;
   }
-  main { max-width: 40rem; margin: 0 auto; padding: 3rem 16px 4rem; }
-  .brand { color: var(--primary); font-weight: 700; font-size: 1.25rem; text-decoration: none; letter-spacing: -0.02em; }
-  h1 { margin: 1.5rem 0 0.25rem; font-size: 1.75rem; letter-spacing: -0.02em; }
-  .summary { margin: 0 0 1.5rem; color: var(--muted); }
-  .banner { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; border-radius: 0.85rem; border: 1px solid var(--border); background: var(--card); font-weight: 600; margin-bottom: 1rem; }
+  main { max-width: 46rem; margin: 0 auto; padding: 2.5rem 16px 4rem; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .logo img { display: block; height: 1.75rem; width: auto; }
+  .logo .dark { display: none; }
+  @media (prefers-color-scheme: dark) {
+    .logo .light { display: none; }
+    .logo .dark { display: block; }
+  }
+  header a.site { color: var(--muted); font-size: 0.875rem; text-decoration: none; }
+  header a.site:hover { color: var(--fg); }
+  h1 { margin: 2rem 0 0.25rem; font-size: 1.75rem; letter-spacing: -0.02em; }
+  .summary { margin: 0 0 1.5rem; color: var(--muted); font-size: 0.9375rem; }
+  .banner { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.125rem; border-radius: 0.85rem; border: 1px solid var(--border); background: var(--card); font-weight: 600; margin-bottom: 1.25rem; }
   .dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
   .dot.ok { background: var(--ok); }
   .dot.bad { background: var(--bad); }
-  ul { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: 0.85rem; background: var(--card); overflow: hidden; }
-  li { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; border-top: 1px solid var(--border); }
-  li:first-child { border-top: 0; }
-  .name { flex: 1; font-weight: 500; }
-  .meta { color: var(--muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
-  footer { margin-top: 1.5rem; color: var(--muted); font-size: 0.875rem; }
+  .services { display: grid; gap: 0; border: 1px solid var(--border); border-radius: 0.85rem; background: var(--card); overflow: hidden; }
+  .svc { padding: 1rem 1.125rem; border-top: 1px solid var(--border); }
+  .svc:first-child { border-top: 0; }
+  .svc-head { display: flex; align-items: center; gap: 0.625rem; }
+  .svc-name { flex: 1; font-weight: 500; }
+  .svc-now { color: var(--muted); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
+  .bars { display: grid; grid-template-columns: repeat(90, minmax(0, 1fr)); gap: 2px; height: 2rem; margin: 0.75rem 0 0.375rem; }
+  .bar { border-radius: 2px; background: var(--none); }
+  .bar.ok { background: var(--ok); }
+  .bar.warn { background: var(--warn); }
+  .bar.bad { background: var(--bad); }
+  .bar:hover { opacity: 0.75; }
+  .legend { display: flex; justify-content: space-between; gap: 0.5rem; color: var(--muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+  .legend strong { color: var(--fg); font-weight: 600; }
+  .tip { position: fixed; z-index: 10; pointer-events: none; padding: 0.375rem 0.5rem; border-radius: 0.4rem; background: var(--fg); color: var(--bg); font-size: 0.75rem; white-space: nowrap; display: none; }
+  footer { margin-top: 1.5rem; color: var(--muted); font-size: 0.8125rem; display: grid; gap: 0.25rem; }
   a { color: var(--primary); }
+  @media (max-width: 520px) {
+    .bars { grid-template-columns: repeat(45, minmax(0, 1fr)); }
+    .bars .bar:nth-child(-n+45) { display: none; }
+    /* no celular aparecem só os últimos 45 dias: as pontas da legenda ("90 dias atrás") sairiam erradas */
+    .legend { justify-content: center; text-align: center; }
+    .legend span:first-child, .legend span:last-child { display: none; }
+  }
 </style>
 </head>
 <body>
 <main>
-  <a class="brand" href="https://tenanci.com">tenanci</a>
+  <header>
+    <a class="logo" href="https://tenanci.com" aria-label="Tenanci">
+      <img class="light" src="logo.svg" alt="Tenanci">
+      <img class="dark" src="logo-white.svg" alt="Tenanci">
+    </a>
+    <a class="site" href="https://app.tenanci.com">Entrar no painel →</a>
+  </header>
   <h1>Status dos serviços</h1>
   <p class="summary" id="updated">Carregando…</p>
   <div class="banner"><span class="dot" id="all-dot"></span><span id="all-text">Verificando…</span></div>
-  <ul id="list"></ul>
+  <div class="services" id="list"></div>
   <footer>
-    Checagem automática a cada 5 minutos, de fora da nossa infraestrutura.
-    <a href="https://github.com/tenanci/status/issues?q=is%3Aissue">Histórico de incidentes</a>
+    <span>Checagem automática a cada 5 minutos, de fora da nossa infraestrutura. Cada barra é um dia (últimos 90).</span>
+    <span><a href="https://github.com/tenanci/status/issues?q=is%3Aissue">Histórico de incidentes</a></span>
   </footer>
 </main>
+<div class="tip" id="tip"></div>
 <script>
-  const fmt = (iso) => new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
-  fetch("status.json", { cache: "no-store" })
-    .then((r) => r.json())
-    .then((s) => {
+  const DAY = 86400000;
+  const fmtDateTime = (t) => new Date(t).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+  const fmtDay = (t) => new Date(t).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" });
+  const pct = (v) => (v * 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%";
+  const fmtMin = (ms) => {
+    const m = Math.round(ms / 60000);
+    return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`;
+  };
+
+  /** Tempo fora do ar entre a e b, a partir das mudanças de estado (cada estado vale até a mudança seguinte). */
+  function downtime(events, a, b, now) {
+    let down = 0;
+    for (let i = 0; i < events.length; i++) {
+      if (events[i].ok) continue;
+      const s = Math.max(Date.parse(events[i].at), a);
+      const e = Math.min(i + 1 < events.length ? Date.parse(events[i + 1].at) : now, b);
+      if (e > s) down += e - s;
+    }
+    return down;
+  }
+
+  Promise.all([
+    fetch("status.json", { cache: "no-store" }).then((r) => r.json()),
+    fetch("history.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : { since: null, events: {} })).catch(() => ({ since: null, events: {} })),
+  ])
+    .then(([s, h]) => {
+      const now = Date.now();
+      const since = h.since ? Date.parse(h.since) : now;
       const allOk = s.checks.every((c) => c.ok);
       document.getElementById("all-dot").className = "dot " + (allOk ? "ok" : "bad");
       document.getElementById("all-text").textContent = allOk ? "Todos os serviços funcionando" : "Há serviços com problema";
-      document.getElementById("updated").textContent = "Última checagem: " + fmt(s.updated);
+      document.getElementById("updated").textContent =
+        "Última checagem: " + fmtDateTime(s.updated) + (h.since ? " · histórico desde " + fmtDay(since) : "");
+
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+      const firstDay = today.getTime() - 89 * DAY;
+
       document.getElementById("list").innerHTML = s.checks
-        .map((c) => `<li><span class="dot ${c.ok ? "ok" : "bad"}"></span><span class="name">${c.name}</span><span class="meta">${c.ok ? "Funcionando · " + c.ms + " ms" : "Fora do ar"}</span></li>`)
+        .map((c) => {
+          const ev = (h.events && h.events[c.id]) || [];
+          const start30 = Math.max(now - 30 * DAY, since);
+          const start90 = Math.max(now - 90 * DAY, since);
+          const up30 = now > start30 ? 1 - downtime(ev, start30, now, now) / (now - start30) : 1;
+          const up90 = now > start90 ? 1 - downtime(ev, start90, now, now) / (now - start90) : 1;
+          const bars = [];
+          for (let d = 0; d < 90; d++) {
+            const a = firstDay + d * DAY;
+            const b = Math.min(a + DAY, now);
+            const label = fmtDay(a);
+            if (b <= since) {
+              bars.push(`<span class="bar" data-tip="${label}: sem dados"></span>`);
+              continue;
+            }
+            const down = downtime(ev, Math.max(a, since), b, now);
+            const cls = down === 0 ? "ok" : down < 30 * 60000 ? "warn" : "bad";
+            const txt = down === 0 ? "sem falhas" : fmtMin(down) + " fora do ar";
+            bars.push(`<span class="bar ${cls}" data-tip="${label}: ${txt}"></span>`);
+          }
+          return `<section class="svc">
+            <div class="svc-head"><span class="dot ${c.ok ? "ok" : "bad"}"></span><span class="svc-name">${c.name}</span>
+            <span class="svc-now">${c.ok ? "Funcionando · " + c.ms + " ms" : "Fora do ar"}</span></div>
+            <div class="bars" aria-label="Últimos 90 dias">${bars.join("")}</div>
+            <div class="legend"><span>90 dias atrás</span><span><strong>${pct(up30)}</strong> em 30 dias · <strong>${pct(up90)}</strong> em 90 dias</span><span>Hoje</span></div>
+          </section>`;
+        })
         .join("");
+
+      const tip = document.getElementById("tip");
+      document.querySelectorAll(".bar").forEach((el) => {
+        el.addEventListener("mouseenter", () => { tip.textContent = el.dataset.tip; tip.style.display = "block"; });
+        el.addEventListener("mousemove", (e) => { tip.style.left = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = e.clientY - 32 + "px"; });
+        el.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+      });
     })
     .catch(() => {
       document.getElementById("updated").textContent = "Não foi possível ler a última checagem.";
