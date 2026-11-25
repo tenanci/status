@@ -19,7 +19,7 @@ probe() { # url expect contains → "ok|código|tempo"
   echo "$ok $code $t"
 }
 
-for row in $(jq -c '.[]' checks.json); do
+while IFS= read -r row <&3; do
   id=$(jq -r .id <<<"$row"); name=$(jq -r .name <<<"$row"); url=$(jq -r .url <<<"$row")
   expect=$(jq -r .expect <<<"$row"); contains=$(jq -r '.contains // ""' <<<"$row")
   read -r ok code t < <(probe "$url" "$expect" "$contains")
@@ -46,7 +46,7 @@ Esta issue fecha sozinha quando o serviço voltar." >/dev/null && echo "  → is
   elif [ "$ok" = 1 ] && [ -n "$open" ]; then
     gh issue close "$open" --comment "🟢 Voltou às $now (HTTP $code, ${ms} ms)." >/dev/null && echo "  → issue #$open fechada"
   fi
-done
+done 3< <(jq -c '.[]' checks.json)
 
 prev=$(jq -c '[.checks[]? | {id, ok}]' docs/status.json 2>/dev/null || echo '[]')
 curr=$(jq -c '[.[] | {id, ok}]' <<<"$results")
